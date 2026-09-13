@@ -3,43 +3,54 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>JARVIS 2.0</title>
+
+<title>JARVIS AI</title>
 
 <style>
-*{box-sizing:border-box}
+
+*{
+box-sizing:border-box;
+}
 
 body{
 margin:0;
-background:#030508;
+background:#020509;
 color:#00d9ff;
 font-family:Arial,sans-serif;
-text-align:center;
 min-height:100vh;
 }
 
 .container{
-padding:30px 18px;
-max-width:700px;
+max-width:750px;
 margin:auto;
+padding:25px 15px;
+text-align:center;
 }
 
 h1{
-font-size:44px;
+font-size:45px;
 letter-spacing:8px;
-text-shadow:0 0 20px #00d9ff;
-margin-bottom:25px;
+margin:10px 0 25px;
+text-shadow:
+0 0 10px #00d9ff,
+0 0 30px #00d9ff;
 }
 
 .core{
 width:170px;
 height:170px;
-margin:25px auto;
 border:4px solid #00d9ff;
 border-radius:50%;
+margin:20px auto;
+
 display:flex;
 align-items:center;
 justify-content:center;
-box-shadow:0 0 25px #00d9ff,0 0 80px #006eff;
+
+box-shadow:
+0 0 25px #00d9ff,
+0 0 80px #006eff;
+
 animation:pulse 2s infinite;
 }
 
@@ -48,14 +59,30 @@ font-size:75px;
 font-weight:bold;
 }
 
+@keyframes pulse{
+
+50%{
+box-shadow:
+0 0 50px #00d9ff,
+0 0 120px #006eff;
+}
+
+}
+
 button{
-background:#050a10;
+
+background:#050b12;
 color:#00d9ff;
+
 border:2px solid #00d9ff;
 border-radius:12px;
-padding:14px 22px;
-font-size:17px;
-margin:6px;
+
+padding:13px 18px;
+
+font-size:16px;
+
+margin:5px;
+
 box-shadow:0 0 12px #00d9ff;
 }
 
@@ -64,59 +91,86 @@ transform:scale(.96);
 }
 
 #status{
-margin:20px 0 10px;
-font-size:19px;
+
+margin:15px 0;
+
+font-size:17px;
+
+min-height:24px;
 }
 
 #chat{
-height:250px;
+
+height:300px;
+
 overflow-y:auto;
+
 border:1px solid #007c99;
+
 border-radius:15px;
-padding:15px;
+
+padding:12px;
+
 margin-top:20px;
+
 text-align:left;
-background:#05080d;
+
+background:#05090e;
 }
 
 .message{
-padding:10px;
+
+padding:11px;
+
 margin:8px 0;
+
 border-radius:10px;
+
+line-height:1.4;
 }
 
 .user{
-background:#08202a;
+
+background:#09232d;
+
 color:white;
 }
 
 .jarvis{
-background:#07151c;
+
+background:#07161d;
+
 color:#00d9ff;
 }
 
 .inputbox{
+
 display:flex;
-gap:8px;
+
+gap:7px;
+
 margin-top:12px;
 }
 
 input{
+
 flex:1;
+
 padding:14px;
+
 border-radius:10px;
+
 border:1px solid #00d9ff;
-background:#05080d;
+
+background:#05090e;
+
 color:white;
+
 font-size:16px;
 }
 
-@keyframes pulse{
-50%{
-box-shadow:0 0 45px #00d9ff,0 0 110px #006eff;
-}
-}
 </style>
+
 </head>
 
 <body>
@@ -129,180 +183,431 @@ box-shadow:0 0 45px #00d9ff,0 0 110px #006eff;
 <span>J</span>
 </div>
 
-<button onclick="listen()">🎙️ Sprechen</button>
-
-<button onclick="jarvisSpeak('Guten Tag. Wie kann ich Ihnen helfen?')">
-🔊 Jarvis
+<button onclick="startAI()">
+🧠 KI STARTEN
 </button>
 
-<div id="status">System bereit.</div>
+<button onclick="listen()">
+🎙️ SPRECHEN
+</button>
+
+<button onclick="jarvisSpeak('Guten Tag. Wie kann ich Ihnen helfen?')">
+🔊 JARVIS
+</button>
+
+<div id="status">
+System bereit.
+</div>
 
 <div id="chat">
+
 <div class="message jarvis">
-<b>JARVIS:</b> System online. Ich bin bereit.
+
+<b>JARVIS:</b>
+
+System online.
+
+Mein KI-Gehirn wartet auf den Start.
+
 </div>
+
 </div>
 
 <div class="inputbox">
-<input id="input" placeholder="Befehl eingeben...">
-<button onclick="sendText()">➤</button>
-</div>
+
+<input
+id="input"
+placeholder="Sprich mit Jarvis..."
+>
+
+<button onclick="sendText()">
+➤
+</button>
 
 </div>
 
-<script>
+</div>
 
-const status = document.getElementById("status");
-const chat = document.getElementById("chat");
-const input = document.getElementById("input");
 
-function addMessage(name,text,type){
+<script type="module">
 
-const div=document.createElement("div");
+import * as webllm from
+"https://esm.run/@mlc-ai/web-llm";
 
-div.className="message "+type;
 
-div.innerHTML="<b>"+name+":</b> "+text;
+const status =
+document.getElementById("status");
+
+const chat =
+document.getElementById("chat");
+
+const input =
+document.getElementById("input");
+
+
+let engine = null;
+
+let aiReady = false;
+
+let messages = [
+
+{
+role:"system",
+
+content:
+
+"Du bist JARVIS, ein freundlicher persönlicher KI-Assistent. Antworte auf Deutsch. Sei hilfreich, kurz und intelligent. Nenne dich JARVIS."
+}
+
+];
+
+
+function addMessage(
+name,
+text,
+type
+){
+
+const div =
+document.createElement("div");
+
+div.className =
+"message " + type;
+
+div.innerHTML =
+"<b>"+name+":</b> "
++
+text;
 
 chat.appendChild(div);
 
-chat.scrollTop=chat.scrollHeight;
+chat.scrollTop =
+chat.scrollHeight;
+
 }
+
 
 function jarvisSpeak(text){
 
-const voice=new SpeechSynthesisUtterance(text);
+const voice =
+new SpeechSynthesisUtterance(text);
 
-voice.lang="de-DE";
-voice.rate=0.9;
-voice.pitch=0.8;
+voice.lang =
+"de-DE";
+
+voice.rate =
+0.9;
+
+voice.pitch =
+0.8;
 
 speechSynthesis.cancel();
+
 speechSynthesis.speak(voice);
+
 }
 
-function respond(command){
 
-command=command.toLowerCase();
+window.startAI =
+async function(){
 
-if(command.includes("hallo") ||
-command.includes("hi") ||
-command.includes("hey")){
+if(aiReady){
 
-return "Guten Tag. Ich bin Jarvis. Wie kann ich Ihnen helfen?";
-}
-
-if(command.includes("uhr") ||
-command.includes("wie spät")){
-
-const time=new Date().toLocaleTimeString(
-"de-DE",
-{hour:"2-digit",minute:"2-digit"}
+addMessage(
+"JARVIS",
+"Mein KI-Gehirn ist bereits aktiv.",
+"jarvis"
 );
 
-return "Es ist "+time+" Uhr.";
+return;
+
 }
 
-if(command.includes("datum")){
 
-const date=new Date().toLocaleDateString("de-DE");
+if(!("gpu" in navigator)){
 
-return "Heute ist der "+date+".";
+status.innerText =
+"❌ Dieser Browser unterstützt WebGPU nicht.";
+
+addMessage(
+"JARVIS",
+"Dieser Browser unterstützt leider kein WebGPU. Wir müssen dann einen anderen Weg verwenden.",
+"jarvis"
+);
+
+return;
+
 }
 
-if(command.includes("youtube")){
 
-setTimeout(()=>{
-window.open("https://www.youtube.com","_blank");
-},700);
+try{
 
-return "Ich öffne YouTube.";
+status.innerText =
+"🧠 KI wird geladen...";
+
+
+engine =
+await webllm.CreateMLCEngine(
+
+"Llama-3.2-1B-Instruct-q4f32_1-MLC",
+
+{
+
+initProgressCallback:
+(progress)=>{
+
+status.innerText =
+"🧠 "
++
+progress.text;
+
 }
 
-if(command.includes("google")){
+},
 
-setTimeout(()=>{
-window.open("https://www.google.com","_blank");
-},700);
+{
 
-return "Ich öffne Google.";
+context_window_size:2048
+
 }
 
-if(command.includes("wer bist du")){
+);
 
-return "Ich bin Jarvis, dein persönlicher Assistent.";
+
+aiReady = true;
+
+status.innerText =
+"🟢 JARVIS KI ONLINE";
+
+
+addMessage(
+"JARVIS",
+"Mein KI-Gehirn ist jetzt online. Du kannst mit mir sprechen.",
+"jarvis"
+);
+
+jarvisSpeak(
+"Mein KI-Gehirn ist jetzt online. Wie kann ich Ihnen helfen?"
+);
+
 }
 
-return "Ich habe deinen Befehl verstanden. Mein KI-Gehirn wird als Nächstes erweitert.";
+catch(error){
+
+console.error(error);
+
+status.innerText =
+"❌ KI konnte nicht gestartet werden.";
+
+addMessage(
+"JARVIS",
+"Das KI-Gehirn konnte auf diesem Gerät nicht gestartet werden.",
+"jarvis"
+);
+
 }
 
-function processCommand(command){
+};
 
-addMessage("DU",command,"user");
 
-const answer=respond(command);
+async function askAI(command){
 
-addMessage("JARVIS",answer,"jarvis");
+if(!aiReady){
+
+addMessage(
+"JARVIS",
+"Bitte zuerst auf „KI STARTEN“ drücken.",
+"jarvis"
+);
+
+return;
+
+}
+
+
+status.innerText =
+"🧠 JARVIS denkt...";
+
+
+messages.push({
+
+role:"user",
+
+content:command
+
+});
+
+
+try{
+
+const response =
+await engine.chat.completions.create({
+
+messages:messages,
+
+temperature:0.7,
+
+max_tokens:180
+
+});
+
+
+const answer =
+response.choices[0].message.content;
+
+
+messages.push({
+
+role:"assistant",
+
+content:answer
+
+});
+
+
+addMessage(
+"JARVIS",
+answer,
+"jarvis"
+);
 
 jarvisSpeak(answer);
+
+status.innerText =
+"🟢 JARVIS bereit.";
+
 }
 
-function sendText(){
+catch(error){
 
-const text=input.value.trim();
+console.error(error);
 
-if(!text)return;
+status.innerText =
+"❌ Fehler beim Denken.";
+
+addMessage(
+"JARVIS",
+"Beim Verarbeiten ist ein Fehler aufgetreten.",
+"jarvis"
+);
+
+}
+
+}
+
+
+window.processCommand =
+function(command){
+
+addMessage(
+"DU",
+command,
+"user"
+);
+
+askAI(command);
+
+};
+
+
+window.sendText =
+function(){
+
+const text =
+input.value.trim();
+
+if(!text)
+return;
 
 input.value="";
 
 processCommand(text);
-}
 
-input.addEventListener("keydown",function(event){
+};
+
+
+input.addEventListener(
+"keydown",
+function(event){
 
 if(event.key==="Enter"){
+
 sendText();
+
 }
 
 });
 
-const Recognition=
+
+const Recognition =
 window.SpeechRecognition ||
 window.webkitSpeechRecognition;
 
+
 let recognition;
+
 
 if(Recognition){
 
-recognition=new Recognition();
+recognition =
+new Recognition();
 
-recognition.lang="de-DE";
-recognition.continuous=false;
-recognition.interimResults=false;
+recognition.lang =
+"de-DE";
 
-recognition.onstart=function(){
-status.innerText="🎙️ Jarvis hört zu...";
+recognition.continuous =
+false;
+
+recognition.interimResults =
+false;
+
+
+recognition.onstart =
+function(){
+
+status.innerText =
+"🎙️ JARVIS hört zu...";
+
 };
 
-recognition.onresult=function(event){
 
-const text=
+recognition.onresult =
+function(event){
+
+const text =
 event.results[0][0].transcript;
 
 processCommand(text);
+
 };
 
-recognition.onend=function(){
-status.innerText="System bereit.";
+
+recognition.onend =
+function(){
+
+if(aiReady){
+
+status.innerText =
+"🟢 JARVIS bereit.";
+
+}
+
 };
 
-recognition.onerror=function(){
-status.innerText="Mikrofonfehler.";
+
+recognition.onerror =
+function(){
+
+status.innerText =
+"❌ Mikrofonfehler.";
+
 };
 
 }
 
-function listen(){
+
+window.listen =
+function(){
 
 if(!recognition){
 
@@ -311,10 +616,24 @@ jarvisSpeak(
 );
 
 return;
+
 }
 
+
+try{
+
 recognition.start();
+
 }
+
+catch(error){
+
+console.log(error);
+
+}
+
+};
+
 
 </script>
 
