@@ -3,59 +3,118 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>JARVIS</title>
+<title>JARVIS 2.0</title>
 
 <style>
+*{box-sizing:border-box}
+
 body{
 margin:0;
-background:#05070a;
+background:#030508;
 color:#00d9ff;
 font-family:Arial,sans-serif;
 text-align:center;
+min-height:100vh;
 }
-.container{padding:45px 20px}
+
+.container{
+padding:30px 18px;
+max-width:700px;
+margin:auto;
+}
+
 h1{
-font-size:48px;
+font-size:44px;
 letter-spacing:8px;
 text-shadow:0 0 20px #00d9ff;
+margin-bottom:25px;
 }
+
 .core{
-width:180px;
-height:180px;
-margin:40px auto;
-border:5px solid #00d9ff;
+width:170px;
+height:170px;
+margin:25px auto;
+border:4px solid #00d9ff;
 border-radius:50%;
-box-shadow:0 0 20px #00d9ff,0 0 70px #006eff;
 display:flex;
 align-items:center;
 justify-content:center;
+box-shadow:0 0 25px #00d9ff,0 0 80px #006eff;
 animation:pulse 2s infinite;
 }
-.core:before{
-content:"J";
-font-size:80px;
+
+.core span{
+font-size:75px;
 font-weight:bold;
 }
+
 button{
-background:transparent;
+background:#050a10;
 color:#00d9ff;
 border:2px solid #00d9ff;
 border-radius:12px;
-padding:15px 28px;
-font-size:18px;
-box-shadow:0 0 15px #00d9ff;
+padding:14px 22px;
+font-size:17px;
+margin:6px;
+box-shadow:0 0 12px #00d9ff;
 }
+
+button:active{
+transform:scale(.96);
+}
+
 #status{
-margin-top:28px;
-font-size:20px;
+margin:20px 0 10px;
+font-size:19px;
 }
-#heard{
-margin-top:15px;
-font-size:16px;
+
+#chat{
+height:250px;
+overflow-y:auto;
+border:1px solid #007c99;
+border-radius:15px;
+padding:15px;
+margin-top:20px;
+text-align:left;
+background:#05080d;
+}
+
+.message{
+padding:10px;
+margin:8px 0;
+border-radius:10px;
+}
+
+.user{
+background:#08202a;
 color:white;
 }
+
+.jarvis{
+background:#07151c;
+color:#00d9ff;
+}
+
+.inputbox{
+display:flex;
+gap:8px;
+margin-top:12px;
+}
+
+input{
+flex:1;
+padding:14px;
+border-radius:10px;
+border:1px solid #00d9ff;
+background:#05080d;
+color:white;
+font-size:16px;
+}
+
 @keyframes pulse{
-50%{box-shadow:0 0 45px #00d9ff,0 0 110px #006eff}
+50%{
+box-shadow:0 0 45px #00d9ff,0 0 110px #006eff;
+}
 }
 </style>
 </head>
@@ -66,151 +125,195 @@ color:white;
 
 <h1>JARVIS</h1>
 
-<div class="core"></div>
+<div class="core">
+<span>J</span>
+</div>
 
-<button onclick="startListening()">
-🎙️ MIT JARVIS SPRECHEN
+<button onclick="listen()">🎙️ Sprechen</button>
+
+<button onclick="jarvisSpeak('Guten Tag. Wie kann ich Ihnen helfen?')">
+🔊 Jarvis
 </button>
 
-<div id="status">Bereit.</div>
-<div id="heard"></div>
+<div id="status">System bereit.</div>
+
+<div id="chat">
+<div class="message jarvis">
+<b>JARVIS:</b> System online. Ich bin bereit.
+</div>
+</div>
+
+<div class="inputbox">
+<input id="input" placeholder="Befehl eingeben...">
+<button onclick="sendText()">➤</button>
+</div>
 
 </div>
 
 <script>
 
 const status = document.getElementById("status");
-const heard = document.getElementById("heard");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
 
-function speak(text){
-const voice = new SpeechSynthesisUtterance(text);
-voice.lang = "de-DE";
-voice.rate = 0.9;
-voice.pitch = 0.8;
+function addMessage(name,text,type){
+
+const div=document.createElement("div");
+
+div.className="message "+type;
+
+div.innerHTML="<b>"+name+":</b> "+text;
+
+chat.appendChild(div);
+
+chat.scrollTop=chat.scrollHeight;
+}
+
+function jarvisSpeak(text){
+
+const voice=new SpeechSynthesisUtterance(text);
+
+voice.lang="de-DE";
+voice.rate=0.9;
+voice.pitch=0.8;
+
 speechSynthesis.cancel();
 speechSynthesis.speak(voice);
 }
 
-const SpeechRecognition =
-window.SpeechRecognition ||
-window.webkitSpeechRecognition;
+function respond(command){
 
-let recognition;
-
-if(SpeechRecognition){
-
-recognition = new SpeechRecognition();
-
-recognition.lang = "de-DE";
-recognition.continuous = false;
-recognition.interimResults = false;
-
-recognition.onstart = function(){
-status.innerText = "🎙️ Ich höre zu...";
-};
-
-recognition.onresult = function(event){
-
-const text =
-event.results[0][0].transcript.toLowerCase();
-
-heard.innerText = "Du: " + text;
-
-handleCommand(text);
-
-};
-
-recognition.onerror = function(){
-status.innerText = "Mikrofon konnte nicht verwendet werden.";
-};
-
-recognition.onend = function(){
-status.innerText = "Bereit.";
-};
-
-}else{
-
-status.innerText =
-"Spracherkennung wird von diesem Browser nicht unterstützt.";
-
-}
-
-function startListening(){
-
-if(!recognition){
-speak("Die Spracherkennung wird von diesem Browser nicht unterstützt.");
-return;
-}
-
-recognition.start();
-
-}
-
-function handleCommand(command){
+command=command.toLowerCase();
 
 if(command.includes("hallo") ||
 command.includes("hi") ||
 command.includes("hey")){
 
-speak("Guten Tag. Wie kann ich Ihnen helfen?");
-return;
-
+return "Guten Tag. Ich bin Jarvis. Wie kann ich Ihnen helfen?";
 }
 
-if(command.includes("wie spät") ||
-command.includes("uhr")){
+if(command.includes("uhr") ||
+command.includes("wie spät")){
 
-const time =
-new Date().toLocaleTimeString("de-DE",{
-hour:"2-digit",
-minute:"2-digit"
-});
+const time=new Date().toLocaleTimeString(
+"de-DE",
+{hour:"2-digit",minute:"2-digit"}
+);
 
-speak("Es ist " + time + " Uhr.");
-return;
-
+return "Es ist "+time+" Uhr.";
 }
 
 if(command.includes("datum")){
 
-const date =
-new Date().toLocaleDateString("de-DE");
+const date=new Date().toLocaleDateString("de-DE");
 
-speak("Heute ist der " + date + ".");
-return;
-
+return "Heute ist der "+date+".";
 }
 
 if(command.includes("youtube")){
 
-speak("Ich öffne YouTube.");
-
-setTimeout(function(){
+setTimeout(()=>{
 window.open("https://www.youtube.com","_blank");
-},1000);
+},700);
 
-return;
-
+return "Ich öffne YouTube.";
 }
 
 if(command.includes("google")){
 
-speak("Ich öffne Google.");
-
-setTimeout(function(){
+setTimeout(()=>{
 window.open("https://www.google.com","_blank");
-},1000);
+},700);
 
-return;
+return "Ich öffne Google.";
+}
+
+if(command.includes("wer bist du")){
+
+return "Ich bin Jarvis, dein persönlicher Assistent.";
+}
+
+return "Ich habe deinen Befehl verstanden. Mein KI-Gehirn wird als Nächstes erweitert.";
+}
+
+function processCommand(command){
+
+addMessage("DU",command,"user");
+
+const answer=respond(command);
+
+addMessage("JARVIS",answer,"jarvis");
+
+jarvisSpeak(answer);
+}
+
+function sendText(){
+
+const text=input.value.trim();
+
+if(!text)return;
+
+input.value="";
+
+processCommand(text);
+}
+
+input.addEventListener("keydown",function(event){
+
+if(event.key==="Enter"){
+sendText();
+}
+
+});
+
+const Recognition=
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
+
+let recognition;
+
+if(Recognition){
+
+recognition=new Recognition();
+
+recognition.lang="de-DE";
+recognition.continuous=false;
+recognition.interimResults=false;
+
+recognition.onstart=function(){
+status.innerText="🎙️ Jarvis hört zu...";
+};
+
+recognition.onresult=function(event){
+
+const text=
+event.results[0][0].transcript;
+
+processCommand(text);
+};
+
+recognition.onend=function(){
+status.innerText="System bereit.";
+};
+
+recognition.onerror=function(){
+status.innerText="Mikrofonfehler.";
+};
 
 }
 
-speak(
-"Ich habe verstanden: " +
-command +
-". Diese Funktion bauen wir als Nächstes aus."
+function listen(){
+
+if(!recognition){
+
+jarvisSpeak(
+"Die Spracherkennung wird von diesem Browser nicht unterstützt."
 );
 
+return;
+}
+
+recognition.start();
 }
 
 </script>
