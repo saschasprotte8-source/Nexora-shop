@@ -1,126 +1,219 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JARVIS</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>JARVIS</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #05070a;
-      color: #00d9ff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-
-    .container {
-      padding: 50px 20px;
-    }
-
-    h1 {
-      font-size: 48px;
-      letter-spacing: 8px;
-      text-shadow: 0 0 20px #00d9ff;
-    }
-
-    .core {
-      width: 180px;
-      height: 180px;
-      margin: 40px auto;
-      border: 5px solid #00d9ff;
-      border-radius: 50%;
-      box-shadow:
-        0 0 20px #00d9ff,
-        0 0 60px #006eff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: pulse 2s infinite;
-    }
-
-    .core::before {
-      content: "J";
-      font-size: 80px;
-      font-weight: bold;
-    }
-
-    button {
-      background: transparent;
-      color: #00d9ff;
-      border: 2px solid #00d9ff;
-      border-radius: 10px;
-      padding: 15px 30px;
-      font-size: 18px;
-      cursor: pointer;
-      box-shadow: 0 0 15px #00d9ff;
-    }
-
-    button:active {
-      transform: scale(0.95);
-    }
-
-    #status {
-      margin-top: 30px;
-      font-size: 20px;
-    }
-
-    @keyframes pulse {
-      0%, 100% {
-        box-shadow: 0 0 20px #00d9ff, 0 0 60px #006eff;
-      }
-
-      50% {
-        box-shadow: 0 0 40px #00d9ff, 0 0 100px #006eff;
-      }
-    }
-  </style>
+<style>
+body{
+margin:0;
+background:#05070a;
+color:#00d9ff;
+font-family:Arial,sans-serif;
+text-align:center;
+}
+.container{padding:45px 20px}
+h1{
+font-size:48px;
+letter-spacing:8px;
+text-shadow:0 0 20px #00d9ff;
+}
+.core{
+width:180px;
+height:180px;
+margin:40px auto;
+border:5px solid #00d9ff;
+border-radius:50%;
+box-shadow:0 0 20px #00d9ff,0 0 70px #006eff;
+display:flex;
+align-items:center;
+justify-content:center;
+animation:pulse 2s infinite;
+}
+.core:before{
+content:"J";
+font-size:80px;
+font-weight:bold;
+}
+button{
+background:transparent;
+color:#00d9ff;
+border:2px solid #00d9ff;
+border-radius:12px;
+padding:15px 28px;
+font-size:18px;
+box-shadow:0 0 15px #00d9ff;
+}
+#status{
+margin-top:28px;
+font-size:20px;
+}
+#heard{
+margin-top:15px;
+font-size:16px;
+color:white;
+}
+@keyframes pulse{
+50%{box-shadow:0 0 45px #00d9ff,0 0 110px #006eff}
+}
+</style>
 </head>
 
 <body>
 
-  <div class="container">
+<div class="container">
 
-    <h1>JARVIS</h1>
+<h1>JARVIS</h1>
 
-    <div class="core"></div>
+<div class="core"></div>
 
-    <button onclick="startJarvis()">
-      🎙️ MIT JARVIS SPRECHEN
-    </button>
+<button onclick="startListening()">
+🎙️ MIT JARVIS SPRECHEN
+</button>
 
-    <div id="status">
-      Bereit.
-    </div>
+<div id="status">Bereit.</div>
+<div id="heard"></div>
 
-  </div>
+</div>
 
-  <script>
+<script>
 
-    const status = document.getElementById("status");
+const status = document.getElementById("status");
+const heard = document.getElementById("heard");
 
-    function speak(text) {
-      const voice = new SpeechSynthesisUtterance(text);
-      voice.lang = "de-DE";
-      voice.rate = 0.9;
-      voice.pitch = 0.8;
+function speak(text){
+const voice = new SpeechSynthesisUtterance(text);
+voice.lang = "de-DE";
+voice.rate = 0.9;
+voice.pitch = 0.8;
+speechSynthesis.cancel();
+speechSynthesis.speak(voice);
+}
 
-      speechSynthesis.speak(voice);
-    }
+const SpeechRecognition =
+window.SpeechRecognition ||
+window.webkitSpeechRecognition;
 
-    function startJarvis() {
+let recognition;
 
-      status.innerText = "Ich höre zu...";
+if(SpeechRecognition){
 
-      speak("Guten Tag. Ich bin Jarvis. Wie kann ich Ihnen helfen?");
+recognition = new SpeechRecognition();
 
-      setTimeout(() => {
-        status.innerText = "Jarvis ist aktiv.";
-      }, 1500);
+recognition.lang = "de-DE";
+recognition.continuous = false;
+recognition.interimResults = false;
 
-    }
+recognition.onstart = function(){
+status.innerText = "🎙️ Ich höre zu...";
+};
 
-  </script>
+recognition.onresult = function(event){
+
+const text =
+event.results[0][0].transcript.toLowerCase();
+
+heard.innerText = "Du: " + text;
+
+handleCommand(text);
+
+};
+
+recognition.onerror = function(){
+status.innerText = "Mikrofon konnte nicht verwendet werden.";
+};
+
+recognition.onend = function(){
+status.innerText = "Bereit.";
+};
+
+}else{
+
+status.innerText =
+"Spracherkennung wird von diesem Browser nicht unterstützt.";
+
+}
+
+function startListening(){
+
+if(!recognition){
+speak("Die Spracherkennung wird von diesem Browser nicht unterstützt.");
+return;
+}
+
+recognition.start();
+
+}
+
+function handleCommand(command){
+
+if(command.includes("hallo") ||
+command.includes("hi") ||
+command.includes("hey")){
+
+speak("Guten Tag. Wie kann ich Ihnen helfen?");
+return;
+
+}
+
+if(command.includes("wie spät") ||
+command.includes("uhr")){
+
+const time =
+new Date().toLocaleTimeString("de-DE",{
+hour:"2-digit",
+minute:"2-digit"
+});
+
+speak("Es ist " + time + " Uhr.");
+return;
+
+}
+
+if(command.includes("datum")){
+
+const date =
+new Date().toLocaleDateString("de-DE");
+
+speak("Heute ist der " + date + ".");
+return;
+
+}
+
+if(command.includes("youtube")){
+
+speak("Ich öffne YouTube.");
+
+setTimeout(function(){
+window.open("https://www.youtube.com","_blank");
+},1000);
+
+return;
+
+}
+
+if(command.includes("google")){
+
+speak("Ich öffne Google.");
+
+setTimeout(function(){
+window.open("https://www.google.com","_blank");
+},1000);
+
+return;
+
+}
+
+speak(
+"Ich habe verstanden: " +
+command +
+". Diese Funktion bauen wir als Nächstes aus."
+);
+
+}
+
+</script>
 
 </body>
 </html>
