@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS</title>
+
+  <style>
+    body {
+      margin: 0;
+      background: #05070a;
+      color: #00d9ff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    .container {
+      padding: 50px 20px;
+    }
+
+    h1 {
+      font-size: 48px;
+      letter-spacing: 8px;
+      text-shadow: 0 0 20px #00d9ff;
+    }
+
+    .core {
+      width: 180px;
+      height: 180px;
+      margin: 40px auto;
+      border: 5px solid #00d9ff;
+      border-radius: 50%;
+      box-shadow:
+        0 0 20px #00d9ff,
+        0 0 60px #006eff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 2s infinite;
+    }
+
+    .core::before {
+      content: "J";
+      font-size: 80px;
+      font-weight: bold;
+    }
+
+    button {
+      background: transparent;
+      color: #00d9ff;
+      border: 2px solid #00d9ff;
+      border-radius: 10px;
+      padding: 15px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 0 15px #00d9ff;
+    }
+
+    button:active {
+      transform: scale(0.95);
+    }
+
+    #status {
+      margin-top: 30px;
+      font-size: 20px;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 20px #00d9ff, 0 0 60px #006eff;
+      }
+
+      50% {
+        box-shadow: 0 0 40px #00d9ff, 0 0 100px #006eff;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+
+    <h1>JARVIS</h1>
+
+    <div class="core"></div>
+
+    <button onclick="startJarvis()">
+      🎙️ MIT JARVIS SPRECHEN
+    </button>
+
+    <div id="status">
+      Bereit.
+    </div>
+
+  </div>
+
+  <script>
+
+    const status = document.getElementById("status");
+
+    function speak(text) {
+      const voice = new SpeechSynthesisUtterance(text);
+      voice.lang = "de-DE";
+      voice.rate = 0.9;
+      voice.pitch = 0.8;
+
+      speechSynthesis.speak(voice);
+    }
+
+    function startJarvis() {
+
+      status.innerText = "Ich höre zu...";
+
+      speak("Guten Tag. Ich bin Jarvis. Wie kann ich Ihnen helfen?");
+
+      setTimeout(() => {
+        status.innerText = "Jarvis ist aktiv.";
+      }, 1500);
+
+    }
+
+  </script>
+
+</body>
+</html>
