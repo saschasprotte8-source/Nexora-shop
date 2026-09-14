@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+i<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -497,7 +497,29 @@ addMessage(
 
 
 window.processCommand =
-function(command){
+function(command){command = command.toLowerCase().trim();
+
+if (command.includes("uhrzeit") || command.includes("wie spät")) {
+    const zeit = new Date().toLocaleTimeString("de-DE", {
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+
+    jarvisSpeak("Es ist " + zeit + " Uhr.");
+    return;
+}
+
+if (command.includes("google öffnen") || command.includes("google")) {
+    jarvisSpeak("Natürlich. Ich öffne Google.");
+    window.open("https://www.google.com", "_blank");
+    return;
+}
+
+if (command.includes("youtube öffnen") || command.includes("youtube")) {
+    jarvisSpeak("Ich öffne YouTube.");
+    window.open("https://www.youtube.com", "_blank");
+    return;
+}
 
 addMessage(
 "DU",
