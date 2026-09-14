@@ -519,6 +519,21 @@ if (command.includes("youtube öffnen") || command.includes("youtube")) {
     jarvisSpeak("Ich öffne YouTube.");
     window.open("https://www.youtube.com", "_blank");
     return;
+}if (command.includes("suche auf youtube nach")) {
+    const suchbegriff = command
+        .split("suche auf youtube nach")[1]
+        .trim();
+
+    if (suchbegriff) {
+        jarvisSpeak("Ich suche auf YouTube nach " + suchbegriff + ".");
+        const url = "https://www.youtube.com/results?search_query=" +
+                    encodeURIComponent(suchbegriff);
+        window.open(url, "_blank");
+    } else {
+        jarvisSpeak("Wonach soll ich auf YouTube suchen?");
+    }
+
+    return;
 }
 
 addMessage(
